@@ -2,7 +2,9 @@
 NullDisk Django Backend
 
 ## Install Required Packages
+```console
 pip install requirements.txt
+```
 
 ## Create Config file
 in root directory, make .env file and set a random secret key
