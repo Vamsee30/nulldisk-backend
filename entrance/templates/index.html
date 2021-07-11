@@ -1,0 +1,24 @@
+<html>
+    <title>500 Internal Server Error</title>
+    <body>
+<style>
+.hidden {
+    position:fixed;
+    height: 30px;
+    background-color:white;
+    color: white;
+    bottom: 0px;
+    padding:5px;
+}
+.hidden:hover{
+    background-color: black;
+    color: #00ff00;
+    font-family:'Courier New', Courier, monospace;
+}
+</style>
+        <center><h1><b>500 Internal Server Error</b></h1></center>
+        <hr>
+        <center>nginx</center>
+        <div class='hidden' onclick="location.href='{% url 'main' %}';">#Enter</div>
+    </body>
+</html>
