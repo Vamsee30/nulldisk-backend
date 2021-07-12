@@ -38,6 +38,7 @@ class NoteViewSet(viewsets.ModelViewSet):
             return Response(serial.data)
         return Response(serial.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
     @action(detail=False, methods=['get'])
     def search(self, request, format=None):
         query = (request.query_params.get('query'))
@@ -72,3 +73,13 @@ class NoteViewSet(viewsets.ModelViewSet):
         links = queryset.filter(id__in=ids)
         serial = NoteSerializer(links, many=True)
         return Response(serial.data)
+
+    @action(detail=True, methods=['get'])
+    def delete(self,request,pk):
+        queryset = models.Note.objects.filter(author=request.user.id)
+        post = queryset.filter(id=pk).first()
+        if post is None:
+            return Response({'delete':False})
+        post.delete()
+        print('here oh shit')
+        return Response({'delete':int(pk)})
