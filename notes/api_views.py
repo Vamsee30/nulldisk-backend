@@ -4,9 +4,10 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated  # <-- Here
 from rest_framework import status
 from . import models
-from .serializers import NoteSerializer
+from .serializers import NoteSerializer, ReviewSerializer
 from .parsers import extract_title, extract_links
-
+from supermemo2 import SMTwo as SM2
+from datetime import date
 
 class NoteViewSet(viewsets.ModelViewSet):
 
@@ -30,14 +31,13 @@ class NoteViewSet(viewsets.ModelViewSet):
 
     def update(self, request, pk=None):
         title = extract_title(request.data['content'])
-        current_post = models.Note.objects.get(id=pk)
+        current_post = models.Note.objects.get(author=request.user.id,id=pk)
         rez = {**request.data,'title':title, 'author':request.user.id}
         serial = NoteSerializer(current_post, data=rez)
         if serial.is_valid():
             serial.save()
             return Response(serial.data)
         return Response(serial.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
     @action(detail=False, methods=['get'])
     def search(self, request, format=None):
@@ -83,3 +83,46 @@ class NoteViewSet(viewsets.ModelViewSet):
         post.delete()
         print('here oh shit')
         return Response({'delete':int(pk)})
+
+
+
+class ReviewViewSet(viewsets.ModelViewSet):
+
+    queryset = models.Review.objects.all()
+    serializer_class = ReviewSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def list(self,request):
+        queryset = queryset.filter(note__author=request.user.id)
+        serial = ReviewSerializer(queryset, many=True)
+        return Response(serial.data)
+
+    @action(detail=False, methods=['get'])
+    def search(self, request, format=None):
+        query = (request.query_params.get('query'))
+        if query is None:
+            return Response([])
+        queryset = self.queryset.filter(note__author=request.user.id)
+        for part in query.split(' '):
+            if part[0]=='-':
+                queryset = queryset.exclude(note__content__icontains=part[1:])
+            else:
+                queryset = queryset.filter(note__content__icontains=part)
+        return Response(ReviewSerializer(queryset, many=True).data)
+
+
+    @action(detail=False, methods=['post'])
+    def memorize(self, request, format=None):
+        ReviewSet = models.Review.objects.all().filter(note__author=request.user.id)
+        if float(request.data['easiness']) >0:
+            review = SM2(float( request.data['easiness'] ),int( request.data[ 'interval' ] ),int ( request.data['repetitions'] )).review(int( request.data[ 'quality' ] ), date.today())
+        else:
+            review = SM2.first_review(int(request.data['quality']), date.today())
+        note = ReviewSet.get(note__pk=request.data['note']['id'])
+        note.easiness = review.easiness
+        note.interval = review.interval
+        note.repetitions = review.repetitions
+        note.due_date = review.review_date
+        note.save()
+        return Response(ReviewSerializer(note, many=False).data)
+

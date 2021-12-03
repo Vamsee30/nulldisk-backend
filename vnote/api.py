@@ -3,3 +3,5 @@ from notes import api_views as myapp_views
 
 router = routers.DefaultRouter()
 router.register(r'notes',myapp_views.NoteViewset)
+
+# This file is probably obsolete

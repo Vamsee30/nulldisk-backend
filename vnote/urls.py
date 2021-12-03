@@ -24,6 +24,7 @@ from rest_framework.routers import DefaultRouter
 
 router=DefaultRouter()
 router.register(r'notes', api_views.NoteViewSet)
+router.register(r'review', api_views.ReviewViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),

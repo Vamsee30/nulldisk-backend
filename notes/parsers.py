@@ -17,3 +17,14 @@ def extract_links(content):
     pattern = r'\(VID=(\d+)\)'
     results = re.findall(pattern,content,re.MULTILINE)
     return results
+
+def extract_blanks(content):
+    inline = re.compile('[^:]::([^:]*?)(?:\n|$)')
+    blank = re.compile('(__\S.*?\S__)')
+    multiline = re.compile('[^:]:::((?:\s(?!___).*)*)')
+    results = []
+    for card in [i.strip() for i in content.split('\n\n')]:
+        for pattern in (inline, blank, multiline):
+            results.extend(pattern.findall(card))
+    results.sort()
+    return results
